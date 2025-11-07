@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans.xsd
+           http://www.springframework.org/schema/data/jpa
+           http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
+
+    <jpa:repositories base-package="com.logistique.gestiontournees.repository" />
+
+    <bean id="vehicleMapper"
+          class="com.logistique.gestiontournees.service.mapper.impl.VehicleMapperImpl" />
+
+    <bean id="deliveryMapper"
+          class="com.logistique.gestiontournees.service.mapper.impl.DeliveryMapperImpl" />
+
+    <bean id="nearestNeighborOptimizer"
+          class="com.logistique.gestiontournees.service.optimizer.impl.NearestNeighborOptimizer" />
+    <bean id="clarkeWrightOptimizer"
+          class="com.logistique.gestiontournees.service.optimizer.impl.ClarkeWrightOptimizer" />
+
+    <bean id="tourMapper"
+          class="com.logistique.gestiontournees.service.mapper.impl.TourMapperImpl">
+        <constructor-arg ref="vehicleMapper" />
+        <constructor-arg ref="deliveryMapper" />
+    </bean>
+
+    <bean id="vehicleService" class="com.logistique.gestiontournees.service.impl.VehicleServiceImpl">
+        <constructor-arg ref="vehicleRepository" />
+        <constructor-arg ref="vehicleMapper" />
+    </bean>
+
+    <bean id="deliveryService" class="com.logistique.gestiontournees.service.impl.DeliveryServiceImpl">
+        <constructor-arg ref="deliveryRepository"/>
+        <constructor-arg ref="deliveryMapper"/>
+        <constructor-arg ref="tourRepository" />
+    </bean>
+
+    <bean id="CLARKE_WRIGHT"
+          class="com.logistique.gestiontournees.service.optimizer.impl.ClarkeWrightOptimizer" />
+
+    <bean id="NEAREST_NEIGHBOR"
+          class="com.logistique.gestiontournees.service.optimizer.impl.NearestNeighborOptimizer" />
+
+
+    <bean id="tourService" class="com.logistique.gestiontournees.service.impl.TourServiceImpl">
+        <constructor-arg ref="tourRepository" />
+        <constructor-arg ref="tourMapper" />
+        <constructor-arg ref="warehouseRepository" />
+        <constructor-arg>
+            <map>
+                <entry key="CLARKE_WRIGHT" value-ref="CLARKE_WRIGHT" />
+                <entry key="NEAREST_NEIGHBOR" value-ref="NEAREST_NEIGHBOR" />
+            </map>
+        </constructor-arg>
+
+    </bean>
+
+    <bean id="databaseTestRunner"
+          class="com.logistique.gestiontournees.runner.DatabaseTestRunner">
+        <constructor-arg ref="warehouseRepository"/>
+    </bean>
+
+    <bean id="vehicleController"
+          class="com.logistique.gestiontournees.controller.VehicleController">
+        <constructor-arg ref="vehicleService"/>
+    </bean>
+    <bean id="deliveryController"
+          class="com.logistique.gestiontournees.controller.DeliveryController">
+        <constructor-arg ref="deliveryService"/>
+    </bean>
+    <bean id="tourController"
+          class="com.logistique.gestiontournees.controller.TourController">
+        <constructor-arg ref="tourService"/>
+    </bean>
+
+</beans>
