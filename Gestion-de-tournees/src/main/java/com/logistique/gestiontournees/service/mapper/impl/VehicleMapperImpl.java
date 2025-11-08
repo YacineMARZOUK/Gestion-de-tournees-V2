@@ -6,7 +6,9 @@ import com.logistique.gestiontournees.service.mapper.VehicleMapper;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.stereotype.Component;
 
+@Component
 public class VehicleMapperImpl implements VehicleMapper {
 
 

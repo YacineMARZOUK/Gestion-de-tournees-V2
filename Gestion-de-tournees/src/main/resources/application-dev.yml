@@ -15,5 +15,4 @@ spring:
   jpa:
 
     hibernate:
-      ddl-auto: update
-    defer-datasource-initialization: true
+      ddl-auto: none

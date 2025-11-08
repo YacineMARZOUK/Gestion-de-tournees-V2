@@ -76,12 +76,5 @@ public class VehicleController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @GetMapping("/byType")
-    public ResponseEntity<List<VehicleDTO>> getVehiclesByType(@RequestParam("type") VehicleType type) {
-        if(type == null){
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-       List<VehicleDTO> vehicleDTOS = vehicleService.findVehicleByTypeOrderByMaxWeightDesc(type);
-        return ResponseEntity.ok(vehicleDTOS);
-    }
+
 }

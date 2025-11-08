@@ -6,11 +6,12 @@ import com.logistique.gestiontournees.entity.enumeration.VehicleType;
 import com.logistique.gestiontournees.repository.VehicleRepository;
 import com.logistique.gestiontournees.service.VehicleService;
 import com.logistique.gestiontournees.service.mapper.VehicleMapper;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
+@Service
 public class VehicleServiceImpl implements VehicleService {
 
 
@@ -46,12 +47,5 @@ public class VehicleServiceImpl implements VehicleService {
         vehicleRepository.deleteById(id);
     }
 
-    @Override
-     public List<VehicleDTO> findVehicleByTypeOrderByMaxWeightDesc(VehicleType type){
-        List<Vehicle> vehicleDESC = vehicleRepository.findVehicleByTypeOrderByMaxWeightDesc(type);
 
-        return vehicleDESC.stream()
-                .map(vehicle -> vehicleMapper.toDto(vehicle))
-                .collect(Collectors.toList());
-    }
 }

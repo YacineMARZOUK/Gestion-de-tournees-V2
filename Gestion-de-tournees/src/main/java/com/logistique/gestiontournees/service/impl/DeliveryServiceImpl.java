@@ -10,11 +10,12 @@ import com.logistique.gestiontournees.service.DeliveryService;
 import com.logistique.gestiontournees.service.mapper.DeliveryMapper;
 import com.logistique.gestiontournees.util.DistanceCalculator;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
+@Service
 public class DeliveryServiceImpl implements DeliveryService {
     private final  DeliveryRepository deliveryRepository;
     private final DeliveryMapper deliveryMapper;
