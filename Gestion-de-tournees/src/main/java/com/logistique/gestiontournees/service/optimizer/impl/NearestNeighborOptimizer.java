@@ -5,10 +5,11 @@ import com.logistique.gestiontournees.entity.Vehicle;
 import com.logistique.gestiontournees.entity.Warehouse;
 import com.logistique.gestiontournees.service.optimizer.TourOptimizer;
 import com.logistique.gestiontournees.util.DistanceCalculator;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
-
+@Component("NEAREST_NEIGHBOR")
 public class NearestNeighborOptimizer implements TourOptimizer {
 
     @Override

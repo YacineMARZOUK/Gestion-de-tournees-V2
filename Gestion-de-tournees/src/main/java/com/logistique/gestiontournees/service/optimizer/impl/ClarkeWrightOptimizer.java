@@ -5,10 +5,11 @@ import com.logistique.gestiontournees.entity.Vehicle;
 import com.logistique.gestiontournees.entity.Warehouse;
 import com.logistique.gestiontournees.service.optimizer.TourOptimizer;
 import com.logistique.gestiontournees.util.DistanceCalculator;
+import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.stream.Collectors;
-
+@Component("CLARKE_WRIGHT")
 public class ClarkeWrightOptimizer implements TourOptimizer {
 
     /**
