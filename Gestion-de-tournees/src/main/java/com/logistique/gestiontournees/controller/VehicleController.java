@@ -6,11 +6,12 @@ import com.logistique.gestiontournees.entity.Vehicle;
 import com.logistique.gestiontournees.entity.enumeration.VehicleType;
 import com.logistique.gestiontournees.service.VehicleService;
 import io.swagger.v3.oas.annotations.Operation;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -46,9 +47,9 @@ public class VehicleController {
 
     @Operation(summary = "Récupère la liste de tous les véhicules")
     @GetMapping
-    public ResponseEntity<List<VehicleDTO>> getAllVehicles() {
-        List<VehicleDTO> vehicles = vehicleService.findAll();
-        return ResponseEntity.ok(vehicles);
+    public ResponseEntity<Page<VehicleDTO>> getAllVehicles(Pageable pageable) { // <-- MODIFIÉ
+        Page<VehicleDTO> vehiclePage = vehicleService.findAll(pageable);
+        return ResponseEntity.ok(vehiclePage);
     }
 
     @Operation(summary = "Met à jour un véhicule existant")
@@ -74,6 +75,16 @@ public class VehicleController {
         vehicleService.deleteById(id);
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Operation(summary = "Recherche les véhicules par poids minimum (paginé)")
+    @GetMapping("/search/by-weight")
+    public ResponseEntity<Page<VehicleDTO>> searchVehiclesByWeight(
+            @RequestParam("minWeight") double minWeight,
+            Pageable pageable) {
+
+        Page<VehicleDTO> vehiclePage = vehicleService.searchByWeight(minWeight, pageable);
+        return ResponseEntity.ok(vehiclePage);
     }
 
 

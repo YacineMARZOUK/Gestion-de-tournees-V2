@@ -7,10 +7,10 @@ import com.logistique.gestiontournees.repository.VehicleRepository;
 import com.logistique.gestiontournees.service.VehicleService;
 import com.logistique.gestiontournees.service.mapper.VehicleMapper;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.util.Optional;
-import java.util.stream.Collectors;
+
 @Service
 public class VehicleServiceImpl implements VehicleService {
 
@@ -35,16 +35,23 @@ public class VehicleServiceImpl implements VehicleService {
         return vehicleRepository.findById(id).map(vehicleMapper::toDto);
     }
 
+
     @Override
-    public List<VehicleDTO> findAll() {
-        return vehicleRepository.findAll().stream()
-                .map(vehicleMapper::toDto)
-                .collect(Collectors.toList());
+    public Page<VehicleDTO> findAll(Pageable pageable) {
+        Page<Vehicle> vehiclePage = vehicleRepository.findAll(pageable);
+
+        return vehiclePage.map(vehicleMapper::toDto);
     }
 
     @Override
     public void deleteById(Long id) {
         vehicleRepository.deleteById(id);
+    }
+
+    @Override
+    public Page<VehicleDTO> searchByWeight(double minWeight, Pageable pageable) {
+        Page<Vehicle> vehiclePage = vehicleRepository.findByMaxWeightGreaterThan(minWeight, pageable);
+        return vehiclePage.map(vehicleMapper::toDto);
     }
 
 
