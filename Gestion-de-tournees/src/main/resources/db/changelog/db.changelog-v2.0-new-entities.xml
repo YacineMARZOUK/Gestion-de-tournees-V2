@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet author="yacine" id="2-create-customer-table">
+        <createTable tableName="customer">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="address" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="latitude" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="longitude" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="preferred_time_slot" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="yacine" id="3-add-customer-fk-to-delivery">
+        <addColumn tableName="delivery">
+            <column name="customer_id" type="BIGINT">
+                <constraints foreignKeyName="fk_delivery_customer" references="customer(id)"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="yacine" id="4-create-delivery-history-table">
+        <createTable tableName="delivery_history">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="customer_id" type="BIGINT">
+                <constraints foreignKeyName="fk_history_customer" references="customer(id)"/>
+            </column>
+            <column name="tour_id" type="BIGINT">
+                <constraints foreignKeyName="fk_history_tour" references="tour(id)"/>
+            </column>
+            <column name="delivery_date" type="DATE"/>
+            <column name="planned_time" type="TIME"/>
+            <column name="actual_time" type="TIME"/>
+            <column name="delay_in_minutes" type="BIGINT"/>
+            <column name="day_of_week" type="VARCHAR(50)"/>
+            <column name="original_delivery_id" type="BIGINT"/>
+            <column name="address" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>
