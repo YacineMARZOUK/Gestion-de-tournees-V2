@@ -38,4 +38,8 @@ public class Delivery {
     @JoinColumn(name = "tour_id")
     private Tour tour;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id")
+    private Customer customer;
+
 }

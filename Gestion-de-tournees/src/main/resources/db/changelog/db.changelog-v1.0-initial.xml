@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet author="yacine" id="1-create-v1-tables">
+
+        <createTable tableName="warehouse">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="address" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="latitude" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="longitude" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="opening_time" type="TIME"/>
+            <column name="closing_time" type="TIME"/>
+        </createTable>
+
+        <createTable tableName="vehicle">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="license_plate" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="vehicle_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="max_weight" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="max_volume" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="tour">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="tour_date" type="DATE"/>
+            <column name="vehicle_id" type="BIGINT">
+                <constraints foreignKeyName="fk_tour_vehicle" references="vehicle(id)"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="delivery">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="address" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="latitude" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="longitude" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="weight" type="DOUBLE"/>
+            <column name="volume" type="DOUBLE"/>
+            <column name="time_slot" type="VARCHAR(255)"/>
+            <column name="status" type="VARCHAR(255)"/>
+            <column name="tour_id" type="BIGINT">
+                <constraints foreignKeyName="fk_delivery_tour" references="tour(id)"/>
+            </column>
+            <column name="delivery_order" type="INT"/>
+        </createTable>
+
+    </changeSet>
+
+</databaseChangeLog>
