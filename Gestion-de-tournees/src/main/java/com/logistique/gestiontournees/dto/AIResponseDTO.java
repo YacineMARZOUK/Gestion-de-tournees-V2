@@ -11,7 +11,7 @@ public class AIResponseDTO {
     @JsonProperty("recommendations")
     private String recommendations;
 
-    // Getters et Setters
+    // Getters et Setters (publics)
     public List<OptimizedDelivery> getOrderedDeliveries() {
         return orderedDeliveries;
     }
@@ -26,7 +26,8 @@ public class AIResponseDTO {
     }
 
     /**
-     * Classe interne pour la liste des livraisons
+     * Classe interne
+     * ASSUREZ-VOUS QUE CETTE CLASSE EST 'public'
      */
     public static class OptimizedDelivery {
         @JsonProperty("id")
@@ -34,7 +35,7 @@ public class AIResponseDTO {
         @JsonProperty("address")
         private String address;
 
-        // Getters et Setters
+        // ASSUREZ-VOUS QUE LES GETTERS SONT 'public'
         public Long getId() { return id; }
         public void setId(Long id) { this.id = id; }
         public String getAddress() { return address; }
