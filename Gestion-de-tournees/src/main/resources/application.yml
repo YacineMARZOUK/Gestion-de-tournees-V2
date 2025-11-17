@@ -3,7 +3,7 @@ spring:
     name: Gestiontournees
 
   profiles:
-    active: dev
+    active: qa
 
   liquibase:
     enabled: true

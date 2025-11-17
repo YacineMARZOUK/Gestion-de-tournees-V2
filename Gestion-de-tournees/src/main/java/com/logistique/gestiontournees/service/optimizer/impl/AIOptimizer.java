@@ -69,7 +69,12 @@ public class AIOptimizer implements TourOptimizer {
         }
     }
 
+    // Dans AIOptimizer.java
+
     private String buildPrompt(Warehouse warehouse, List<Delivery> deliveries, List<DeliveryHistory> history) {
+        // Les conversions en JSON (warehouseJson, deliveriesJson, historyJson)
+        // restent les mêmes.
+
         String warehouseJson = String.format(
                 "{ \"address\": \"%s\", \"latitude\": %f, \"longitude\": %f }",
                 warehouse.getAddress(), warehouse.getLatitude(), warehouse.getLongitude()
@@ -91,43 +96,31 @@ public class AIOptimizer implements TourOptimizer {
 
         return String.format(
                 """
-                Tu es un expert en logistique pour une société de livraison au Maroc.
-                Ta mission est d'optimiser une tournée de livraison.
-    
-                ## CONTEXTE
-                - L'entrepôt (point de départ et d'arrivée) est :
-                  %s
-                - Le véhicule a des contraintes (poids/volume) mais pour l'instant, ignore-les et concentre-toi sur l'ordre.
+                Tu es un outil de tri JSON. Ta seule tâche est de trier une liste de livraisons.
                 
-                ## HISTORIQUE DES LIVRAISONS (POUR APPRENDRE)
-                Voici les 100 dernières livraisons, note bien les retards (delayInMinutes) :
-                %s
+                DONNÉES:
+                - Entrepôt: %s
+                - Livraisons à trier: %s
+                - Historique des retards: %s
                 
-                ## LIVRAISONS DU JOUR (À OPTIMISER)
-                Voici la liste des livraisons à effectuer aujourd'hui. L'ordre actuel est aléatoire.
-                %s
+                RÈGLES DE TRI:
+                1. Trie la liste "Livraisons à trier" pour qu'elle soit la plus efficace.
+                2. Regarde l'historique. Si une adresse (ex: "Adresse A (Loin)") a des retards fréquents ("delayInMinutes" > 90), place-la à la FIN de la tournée.
+                3. Respecte les "timeSlot" (créneaux horaires) en priorité (ex: "09:00-11:00" doit être au début).
                 
-                ## TA MISSION
-                1. Analyse l'historique pour identifier des schémas (ex: retards fréquents à une certaine adresse, créneaux horaires difficiles).
-                2. Crée l'ordre de livraison le plus efficace (le plus rapide) pour les "LIVRAISONS DU JOUR".
-                3. Priorise les livraisons ayant des créneaux horaires (timeSlot) stricts.
-                4. Utilise l'historique pour prédire les retards et éviter les zones problématiques aux heures de pointe.
-                
-                ## FORMAT DE RÉPONSE OBLIGATOIRE
-                Tu DOIS répondre UNIQUEMENT avec un objet JSON valide. Ne dis RIEN d'autre.
-                Le JSON doit avoir cette structure exacte :
+                FORMAT DE RÉPONSE OBLIGATOIRE (JSON SEULEMENT):
                 {
                   "orderedDeliveries": [
-                    { "id": 123, "address": "Adresse A" },
-                    { "id": 456, "address": "Adresse B" }
+                    { "id": 123, "address": "Adresse B" },
+                    { "id": 456, "address": "Adresse C" },
+                    { "id": 789, "address": "Adresse A" }
                   ],
-                  "recommendations": "Voici pourquoi j'ai choisi cet ordre..."
+                  "recommendations": "J'ai trié par créneau horaire et mis l'Adresse A en dernier à cause des retards."
                 }
-                
-                Assure-toi que la liste "orderedDeliveries" contient TOUTES les livraisons du jour, ni plus, ni moins.
                 """, warehouseJson, historyJson, deliveriesJson
         );
     }
+
 
     private String cleanAiResponse(String response) {
         int startIndex = response.indexOf("{");
