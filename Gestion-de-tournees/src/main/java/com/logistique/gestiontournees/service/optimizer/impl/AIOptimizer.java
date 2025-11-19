@@ -31,14 +31,19 @@ public class AIOptimizer implements TourOptimizer {
         this.objectMapper = objectMapper;
     }
 
+
     @Override
     public List<Delivery> calculateOptimalTour(Warehouse warehouse, List<Delivery> deliveries, Vehicle vehicle) {
+        // Validation préalable
+        if (deliveries == null || deliveries.isEmpty()) {
+            System.err.println("ERREUR: Liste de livraisons vide ou nulle");
+            return deliveries;
+        }
+
         List<DeliveryHistory> history = historyRepository.findFirst100ByOrderByDeliveryDateDesc();
         String promptText = buildPrompt(warehouse, deliveries, history);
 
-        // APPEL MODIFIÉ
         String jsonResponse = chatModel.call(promptText);
-
         System.out.println("--- Réponse de l'IA ---");
         System.out.println(jsonResponse);
         System.out.println("---------------------");
@@ -46,35 +51,44 @@ public class AIOptimizer implements TourOptimizer {
         try {
             String cleanedJson = cleanAiResponse(jsonResponse);
             AIResponseDTO response = objectMapper.readValue(cleanedJson, AIResponseDTO.class);
-
             System.out.println("[Recommandations de l'IA] : " + response.getRecommendations());
 
+            // Créer la map AVANT de traiter la réponse
             Map<Long, Delivery> deliveryMap = deliveries.stream()
                     .collect(Collectors.toMap(Delivery::getId, d -> d));
 
+            // CORRECTION CRITIQUE: Vérifier chaque ID
             List<Delivery> orderedList = response.getOrderedDeliveries().stream()
-                    .map(dto -> deliveryMap.get(dto.getId()))
+                    .map(dto -> {
+                        Delivery delivery = deliveryMap.get(dto.getId());
+                        if (delivery == null) {
+                            System.err.println("ATTENTION: Delivery ID " + dto.getId() + " introuvable!");
+                        }
+                        return delivery;
+                    })
+                    .filter(d -> d != null) // Filtrer les nulls
                     .collect(Collectors.toList());
 
+            // Vérification stricte du nombre
             if (orderedList.size() != deliveries.size()) {
-                System.err.println("ERREUR IA : Nombre de livraisons incorrect.");
-                return deliveries;
+                System.err.println("ERREUR IA : Nombre de livraisons incorrect ("
+                        + orderedList.size() + " vs " + deliveries.size() + ")");
+                System.err.println("IDs reçus: " + response.getOrderedDeliveries().stream()
+                        .map(d -> d.getId()).collect(Collectors.toList()));
+                System.err.println("IDs attendus: " + deliveryMap.keySet());
+                return deliveries; // Retourner l'ordre original
             }
 
             return orderedList;
 
         } catch (Exception e) {
             System.err.println("ERREUR PARSING JSON : " + e.getMessage());
+            e.printStackTrace();
             return deliveries;
         }
     }
 
-    // Dans AIOptimizer.java
-
     private String buildPrompt(Warehouse warehouse, List<Delivery> deliveries, List<DeliveryHistory> history) {
-        // Les conversions en JSON (warehouseJson, deliveriesJson, historyJson)
-        // restent les mêmes.
-
         String warehouseJson = String.format(
                 "{ \"address\": \"%s\", \"latitude\": %f, \"longitude\": %f }",
                 warehouse.getAddress(), warehouse.getLatitude(), warehouse.getLongitude()
@@ -85,42 +99,49 @@ public class AIOptimizer implements TourOptimizer {
                         "{ \"id\": %d, \"address\": \"%s\", \"latitude\": %f, \"longitude\": %f, \"weight\": %f, \"timeSlot\": \"%s\" }",
                         d.getId(), d.getAddress(), d.getLatitude(), d.getLongitude(), d.getWeight(), d.getTimeSlot()
                 ))
-                .collect(Collectors.joining(",\n    ", "[\n    ", "\n  ]"));
+                .collect(Collectors.joining(",\n  ", "[\n  ", "\n]"));
 
         String historyJson = history.stream()
                 .map(h -> String.format(
                         "{ \"address\": \"%s\", \"dayOfWeek\": \"%s\", \"plannedTime\": \"%s\", \"actualTime\": \"%s\", \"delayInMinutes\": %d }",
                         h.getAddress(), h.getDayOfWeek(), h.getPlannedTime(), h.getActualTime(), h.getDelayInMinutes()
                 ))
-                .collect(Collectors.joining(",\n    ", "[\n    ", "\n  ]"));
+                .collect(Collectors.joining(",\n  ", "[\n  ", "\n]"));
+
+        // IMPORTANT: Lister explicitement les IDs valides
+        String validIds = deliveries.stream()
+                .map(d -> String.valueOf(d.getId()))
+                .collect(Collectors.joining(", "));
 
         return String.format(
                 """
-                Tu es un outil de tri JSON. Ta seule tâche est de trier une liste de livraisons.
+                Tu es un outil d'optimisation de tournées. Ta tâche est de RÉORDONNER une liste de livraisons.
                 
                 DONNÉES:
                 - Entrepôt: %s
                 - Livraisons à trier: %s
                 - Historique des retards: %s
                 
-                RÈGLES DE TRI:
-                1. Trie la liste "Livraisons à trier" pour qu'elle soit la plus efficace.
-                2. Regarde l'historique. Si une adresse (ex: "Adresse A (Loin)") a des retards fréquents ("delayInMinutes" > 90), place-la à la FIN de la tournée.
-                3. Respecte les "timeSlot" (créneaux horaires) en priorité (ex: "09:00-11:00" doit être au début).
+                RÈGLES CRITIQUES:
+                1. Tu DOIS utiliser UNIQUEMENT ces IDs: [%s]
+                2. Ta réponse DOIT contenir EXACTEMENT %d livraisons
+                3. Trie par efficacité: créneaux horaires d'abord, puis proximité géographique
+                4. Si l'historique montre des retards fréquents (>90 min) pour une adresse, place-la en fin de tournée
                 
-                FORMAT DE RÉPONSE OBLIGATOIRE (JSON SEULEMENT):
+                FORMAT DE RÉPONSE (JSON STRICT):
                 {
                   "orderedDeliveries": [
-                    { "id": 123, "address": "Adresse B" },
-                    { "id": 456, "address": "Adresse C" },
-                    { "id": 789, "address": "Adresse A" }
+                    { "id": 123, "address": "Adresse exacte" },
+                    { "id": 456, "address": "Autre adresse" }
                   ],
-                  "recommendations": "J'ai trié par créneau horaire et mis l'Adresse A en dernier à cause des retards."
+                  "recommendations": "Explication brève du tri"
                 }
-                """, warehouseJson, historyJson, deliveriesJson
+                
+                ATTENTION: Vérifie que tu renvoies bien tous les IDs listés ci-dessus, sans en ajouter ni en oublier.
+                """,
+                warehouseJson, deliveriesJson, historyJson, validIds, deliveries.size()
         );
     }
-
 
     private String cleanAiResponse(String response) {
         int startIndex = response.indexOf("{");
